@@ -19,7 +19,7 @@ router.get('/get', (req, res) => {
 //obtener ciudad_comunidad por id de municipio
 router.get('/getByIdMunicipio/:id_municipio',(req,res)=>{
     const id_municipio = req.params.id_municipio;
-    var query = 'SELECT CC.* FROM CIUDAD_O_COMUNIDAD AS CC WHERE id_municipio=?';
+    var query = 'SELECT cc.* FROM ciudad_o_comunidad AS cc WHERE id_municipio=?';
     connection.query(query,[id_municipio],(err,results)=>{
         if(err){
             console.error(err);
@@ -34,7 +34,7 @@ router.get('/getByIdMunicipio/:id_municipio',(req,res)=>{
 router.post('/create', (req, res) => {
     const { nombre, id_municipio} = req.body;
     console.log(req.body);
-    connection.query('INSERT INTO CIUDAD_O_COMUNIDAD (nombre, id_municipio) VALUES ( ?, ?)', [ nombre, id_municipio], (err, results) => {
+    connection.query('INSERT INTO ciudad_o_comunidad (nombre, id_municipio) VALUES ( ?, ?)', [ nombre, id_municipio], (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al crear la comunidad ' });
@@ -47,7 +47,7 @@ router.post('/create', (req, res) => {
 //modificar ciudad_comunidad
 router.patch('/update', (req, res) => {   
     let comunidad = req.body;
-    connection.query('UPDATE CIUDAD_O_COMUNIDAD SET nombre = ?, id_municipio = ? WHERE id = ?', [comunidad.nombre, comunidad.id_municipio, comunidad.id], (err) => {
+    connection.query('UPDATE ciudad_o_comunidad SET nombre = ?, id_municipio = ? WHERE id = ?', [comunidad.nombre, comunidad.id_municipio, comunidad.id], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al actualizar la ciudad ' });
@@ -61,7 +61,7 @@ router.patch('/update', (req, res) => {
 router.delete('/delete/:id', (req, res) =>{
     const { id } = req.params;
     console.log(id);
-    connection.query('DELETE FROM CIUDAD_O_COMUNIDAD WHERE id=?', [id], (err) =>{
+    connection.query('DELETE FROM ciudad_o_comunidad WHERE id=?', [id], (err) =>{
         if (err) {
             console.error(err);
             res.status(500).json({ message: 'No se puede eliminar debido a que se esta utilizando en proyectos' });

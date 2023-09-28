@@ -260,7 +260,7 @@ router.post('/add', multer.single('documento'), (req, res) => {
   */
 
 
-  connection.query('INSERT INTO PROYECTO  SET ?', [datos], (err, results) => {
+  connection.query('INSERT INTO proyecto  SET ?', [datos], (err, results) => {
     if (!err) {
       return res.status(200).json({ message: "Proyecto agregado con exito" });
     }
@@ -307,7 +307,7 @@ function add_alcance(id_proyecto, ObjAlcance, id_unidad_medicion, cantidad) {
     id_proyecto: id_proyecto
   }
   //console.log(datos); 
-  connection.query('INSERT INTO ALCANCE  set ?', [datos], (err, results) => {
+  connection.query('INSERT INTO alcance  set ?', [datos], (err, results) => {
     // console.log('Agregado.!!!')
   });
 
@@ -381,7 +381,7 @@ router.patch('/update', multer.single('documento'), (req, res) => {
 
   console.log(datos);
 
-  connection.query('UPDATE PROYECTO  SET ? WHERE id_proyecto = ?', [datos, proyecto.id_proyecto], (err, results) => {
+  connection.query('UPDATE proyecto  SET ? WHERE id_proyecto = ?', [datos, proyecto.id_proyecto], (err, results) => {
     if (!err) {
       return res.status(200).json({ message: "Proyecto actualizado con exito" });
     }
@@ -416,7 +416,7 @@ router.patch('/updateStatus', (req, res) => {
 router.delete('/delete/:id', (req, res) => {
   const { id } = req.params;
   eliminarProyectoComunidad(req.params.id);
-  const sql = 'DELETE FROM PROYECTO WHERE id_proyecto = ?';
+  const sql = 'DELETE FROM proyecto WHERE id_proyecto = ?';
   connection.query(sql, id, (err, result) => {
     if (err) throw err;
     res.json({ message: 'Proyecto eliminado correctamente' });
@@ -441,7 +441,7 @@ router.delete('/dele/:id_proyecto', (req, res) => {
       }
 
       // Finalmente, eliminamos el proyecto de la tabla "PROYECTO"
-      connection.query('DELETE FROM PROYECTO WHERE id_proyecto = ?', [id_proyecto], (err, results) => {
+      connection.query('DELETE FROM proyecto WHERE id_proyecto = ?', [id_proyecto], (err, results) => {
         if (err) {
           return res.status(500).json(err);
         }
@@ -466,7 +466,7 @@ function eliminarProyectoComunidad(id) {
 //----------------OTROS SERVICIOS--------------------
 //ruta para obtener tipología
 router.get('/get_tipologia', (req, res) => {
-  const sql = 'SELECT * FROM TIPOLOGIA';
+  const sql = 'SELECT * FROM tipologia';
   connection.query(sql, (err, result) => {
     if (err) throw err;
     res.json(result);

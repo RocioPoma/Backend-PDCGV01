@@ -19,7 +19,7 @@ router.get('/list',auth.authenticateToken,(req, res) => {
 //obtener usuario sergun ci
 router.get('/buscar/:ci',auth.authenticateToken, (req, res) => {
     const { ci } = req.params;
-    connection.query('SELECT * FROM USUARIO WHERE ci = ?', [ci], (err, results) => {
+    connection.query('SELECT * FROM usuario WHERE ci = ?', [ci], (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al obtener el usuario' });
@@ -40,14 +40,14 @@ router.post('/create/',auth.authenticateToken, (req, res) => {
    
     //nuevo 
     // Antes de realizar la inserción, verifica si el email ya está en uso.
-connection.query('SELECT * FROM USUARIO WHERE email = ?', [email], (err, results) => {
+connection.query('SELECT * FROM usuario WHERE email = ?', [email], (err, results) => {
   if (!err) {
     if (results.length > 0) {
       // Ya existe un usuario con el mismo email, devuelve un mensaje de error.
       return res.status(400).json({ message: "El email ya está en uso." });
     } else {
       // El email es único, ahora verifica si el ci es único.
-      connection.query('SELECT * FROM USUARIO WHERE ci = ?', [ci], (err, results) => {
+      connection.query('SELECT * FROM usuario WHERE ci = ?', [ci], (err, results) => {
         if (!err) {
           if (results.length > 0) {
             // Ya existe un usuario con el mismo ci, devuelve un mensaje de error.
@@ -56,7 +56,7 @@ connection.query('SELECT * FROM USUARIO WHERE email = ?', [email], (err, results
             // El email y el ci son únicos, procede con la inserción.
             // ... Tu código de inserción aquí ...
             //------------------------------------------------------------------------------------------------
-            connection.query('INSERT INTO USUARIO (ci, nombre, ap_paterno, ap_materno, password, email, telefono, genero, rol, estado, id_entidad_ejecutora,celular,fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [ci, nombre, ap_paterno, ap_materno, password, email, telefono, genero, rol, estado,id_entidad_ejecutora,celular,fecha_registro ], (err, results) => {
+            connection.query('INSERT INTO usuario (ci, nombre, ap_paterno, ap_materno, password, email, telefono, genero, rol, estado, id_entidad_ejecutora,celular,fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [ci, nombre, ap_paterno, ap_materno, password, email, telefono, genero, rol, estado,id_entidad_ejecutora,celular,fecha_registro ], (err, results) => {
               if (!err) {
                 return res.status(200).json({ message: "Usuario agregado con exito" });
               }
@@ -81,7 +81,7 @@ connection.query('SELECT * FROM USUARIO WHERE email = ?', [email], (err, results
 router.put('/update/', auth.authenticateToken,(req, res) => {
     
     const {ci, nombre, ap_paterno, ap_materno, password, email, telefono, genero, rol, estado, id_entidad_ejecutora,celular,fecha_registro } = req.body;
-    connection.query('UPDATE USUARIO SET nombre = ?, ap_paterno = ?, ap_materno = ?, password = ?, email = ?, telefono = ?, genero = ?, rol = ?, estado = ?, id_entidad_ejecutora = ?,celular = ?,fecha_registro= ? WHERE ci = ?', [nombre, ap_paterno, ap_materno, password, email, telefono, genero, rol, estado,id_entidad_ejecutora,celular,fecha_registro, ci], (err) => {
+    connection.query('UPDATE usuario SET nombre = ?, ap_paterno = ?, ap_materno = ?, password = ?, email = ?, telefono = ?, genero = ?, rol = ?, estado = ?, id_entidad_ejecutora = ?,celular = ?,fecha_registro= ? WHERE ci = ?', [nombre, ap_paterno, ap_materno, password, email, telefono, genero, rol, estado,id_entidad_ejecutora,celular,fecha_registro, ci], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al actualizar el usuario' });
@@ -94,7 +94,7 @@ router.put('/update/', auth.authenticateToken,(req, res) => {
 //eliminar usuario
 router.delete('/delete/:ci',auth.authenticateToken, (req, res) => {
     const { ci } = req.params;
-    connection.query('DELETE FROM USUARIO WHERE ci = ?', [ci], (err) => {
+    connection.query('DELETE FROM usuario WHERE ci = ?', [ci], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al eliminar el usuario' });

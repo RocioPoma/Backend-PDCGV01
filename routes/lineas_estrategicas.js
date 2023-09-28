@@ -5,7 +5,7 @@ var auth = require('../services/authentication');
 
 //list 
 router.get('/get', (req, res) => {
-    connection.query('SELECT * FROM LINEA_ESTRATEGICA', (err, results) => {
+    connection.query('SELECT * FROM linea_estrategica', (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al obtener los LINEAS_ESTRATEGICAS' });
@@ -19,7 +19,7 @@ router.get('/get', (req, res) => {
 router.put('/update/:id', (req, res) => {
     const { id } = req.params;
     const { descripcion } = req.body;
-    connection.query('UPDATE LINEA_ESTRATEGICA SET descripcion = ? WHERE id_linea_estrategica = ?', [descripcion, id], (err) => {
+    connection.query('UPDATE linea_estrategica SET descripcion = ? WHERE id_linea_estrategica = ?', [descripcion, id], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al editar la línea estratégica' });
@@ -33,7 +33,7 @@ router.put('/update/:id', (req, res) => {
 // Habilitar una línea estratégica por ID
 router.put('/habilitar/:id', (req, res) => {
     const { id } = req.params;
-    connection.query('UPDATE LINEAS_ESTRATEGICAS SET estado = 1 WHERE id_linea_estrategica = ?', [id], (err) => {
+    connection.query('UPDATE linea_estrategica SET estado = 1 WHERE id_linea_estrategica = ?', [id], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al habilitar la línea estratégica' });
@@ -46,7 +46,7 @@ router.put('/habilitar/:id', (req, res) => {
   // Deshabilitar una línea estratégica por ID
   router.put('/deshabilitar/:id', (req, res) => {
     const { id } = req.params;
-    connection.query('UPDATE LINEAS_ESTRATEGICAS SET estado = 0 WHERE id_linea_estrategica = ?', [id], (err) => {
+    connection.query('UPDATE linea_estrategica SET estado = 0 WHERE id_linea_estrategica = ?', [id], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al deshabilitar la línea estratégica' });

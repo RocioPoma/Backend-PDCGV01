@@ -35,7 +35,7 @@ router.post('/create', (req, res) => {
 // Ruta para actualizar una categoría
 router.patch('/update', (req, res) => {
   let categoria = req.body;
-  var query = "UPDATE CATEGORIA SET nom_categoria = ?, desc_categoria = ? WHERE id_categoria = ?";
+  var query = "UPDATE categoria SET nom_categoria = ?, desc_categoria = ? WHERE id_categoria = ?";
   connection.query(query, [categoria.nom_categoria, categoria.desc_categoria, categoria.id_categoria], (err, result) => {
     if (err) throw err;
     res.json({ message: 'Categoría actualizada correctamente' });

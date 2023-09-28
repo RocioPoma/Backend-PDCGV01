@@ -5,7 +5,7 @@ var auth = require('../services/authentication');
 
 
 router.get('/get', (req, res) => {
-    const sql = 'SELECT * FROM ENTIDAD_FINANCIERA';
+    const sql = 'SELECT * FROM entidad_financiera';
     connection.query(sql, (err, result) => {
       if (err) throw err;
       res.json(result);
@@ -14,7 +14,7 @@ router.get('/get', (req, res) => {
   
   router.get('/buscar/:id', (req, res) => {
     const { id } = req.params;
-    const sql = 'SELECT * FROM ENTIDAD_FINANCIERA WHERE id_entidad_financiera = ?';
+    const sql = 'SELECT * FROM entidad_financiera WHERE id_entidad_financiera = ?';
     connection.query(sql, id, (err, result) => {
       if (err) throw err;
       res.json(result[0]);
@@ -23,7 +23,7 @@ router.get('/get', (req, res) => {
   
   router.post('/create', (req, res) => {
     const { nom_entidad_financiera, desc_entidad_financiera, estado } = req.body;
-    const sql = 'INSERT INTO ENTIDAD_FINANCIERA (nom_entidad_financiera, desc_entidad_financiera, estado) VALUES (?, ?, ?)';
+    const sql = 'INSERT INTO entidad_financiera (nom_entidad_financiera, desc_entidad_financiera, estado) VALUES (?, ?, ?)';
     connection.query(sql, [nom_entidad_financiera, desc_entidad_financiera, estado], (err, result) => {
       if (err) throw err;
       res.status(201).json({ message: 'Entidad financiera creada correctamente' });
@@ -32,7 +32,7 @@ router.get('/get', (req, res) => {
   
   router.put('/update/', (req, res) => {   
     const { nom_entidad_financiera, desc_entidad_financiera, estado,id_entidad_financiera } = req.body;
-    const sql = 'UPDATE ENTIDAD_FINANCIERA SET nom_entidad_financiera = ?, desc_entidad_financiera = ?, estado = ? WHERE id_entidad_financiera = ?';
+    const sql = 'UPDATE entidad_financiera SET nom_entidad_financiera = ?, desc_entidad_financiera = ?, estado = ? WHERE id_entidad_financiera = ?';
     connection.query(sql, [nom_entidad_financiera, desc_entidad_financiera, estado, id_entidad_financiera], (err, result) => {
       if (err) throw err;
       res.json({ message: 'Entidad financiera actualizada correctamente' });
@@ -42,7 +42,7 @@ router.get('/get', (req, res) => {
   
   router.delete('/delete/:id', (req, res) => {
     const { id } = req.params;
-    const sql = 'DELETE FROM ENTIDAD_FINANCIERA WHERE id_entidad_financiera = ?';
+    const sql = 'DELETE FROM entidad_financiera WHERE id_entidad_financiera = ?';
     connection.query(sql, id, (err, result) => {
       if (err) throw err;
       res.json({ message: 'Entidad financiera eliminada correctamente' });

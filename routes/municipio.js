@@ -5,7 +5,7 @@ var auth = require('../services/authentication');
 
 //Listar municipio
 router.get('/get', (req, res) => {
-    connection.query('SELECT * FROM MUNICIPIO', (err, results) => {
+    connection.query('SELECT * FROM municipio', (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al obtener los municipios' });
@@ -18,7 +18,7 @@ router.get('/get', (req, res) => {
   //obtener municipio con id
   router.get('/municipios/:id', (req, res) => {
     const { id } = req.params;
-    connection.query('SELECT * FROM MUNICIPIO WHERE id_municipio = ?', [id], (err, results) => {
+    connection.query('SELECT * FROM municipio WHERE id_municipio = ?', [id], (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al obtener el municipio' });
@@ -35,7 +35,7 @@ router.get('/get', (req, res) => {
   //crear municipio
   router.post('/create', (req, res) => {
     const { nombre_municipio, estado } = req.body;
-    connection.query('INSERT INTO MUNICIPIO (nombre_municipio, estado) VALUES (?, ?)', [nombre_municipio, estado], (err, results) => {
+    connection.query('INSERT INTO municipio (nombre_municipio, estado) VALUES (?, ?)', [nombre_municipio, estado], (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al crear el municipio' });
@@ -49,7 +49,7 @@ router.get('/get', (req, res) => {
    router.patch('/update', (req, res) => {
     let municipio = req.body;
     //console.log(municipio);
-    connection.query('UPDATE MUNICIPIO SET nombre_municipio = ?, estado = ? WHERE id_municipio = ?', [municipio.nombre_municipio, municipio.estado, municipio.id_municipio], (err) => {
+    connection.query('UPDATE municipio SET nombre_municipio = ?, estado = ? WHERE id_municipio = ?', [municipio.nombre_municipio, municipio.estado, municipio.id_municipio], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al actualizar el municipio' });
@@ -61,7 +61,7 @@ router.get('/get', (req, res) => {
 //borrar municipio
   router.delete('/delete/:id', (req, res) => {
     const { id } = req.params;
-    connection.query('DELETE FROM MUNICIPIO WHERE id_municipio = ?', [id], (err) => {
+    connection.query('DELETE FROM municipio WHERE id_municipio = ?', [id], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al eliminar el municipio' });

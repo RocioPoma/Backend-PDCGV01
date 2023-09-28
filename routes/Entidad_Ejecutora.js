@@ -6,7 +6,7 @@ var auth = require('../services/authentication');
 
 //listar
 router.get('/get', (req, res) => {
-    connection.query('SELECT * FROM ENTIDAD_EJECUTORA', (err, results) => {
+    connection.query('SELECT * FROM entidad_ejecutora', (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al obtener las entidades ejecutoras' });
@@ -18,7 +18,7 @@ router.get('/get', (req, res) => {
 //buscar
 router.get('/buscar/:id', (req, res) => {
     const { id } = req.params;
-    connection.query('SELECT * FROM ENTIDAD_EJECUTORA WHERE id_entidad_ejecutora = ?', [id], (err, results) => {
+    connection.query('SELECT * FROM entidad_ejecutora WHERE id_entidad_ejecutora = ?', [id], (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al obtener la entidad ejecutora' });
@@ -35,7 +35,7 @@ router.get('/buscar/:id', (req, res) => {
 router.post('/create', (req, res) => {
     const { id_entidad_ejecutora, nom_entidad_ejecutora, desc_entidad_ejecutora, estado } = req.body;
     console.log(req.body);
-    connection.query('INSERT INTO ENTIDAD_EJECUTORA (id_entidad_ejecutora, nom_entidad_ejecutora, desc_entidad_ejecutora, estado) VALUES (?, ?, ?, ?)', [id_entidad_ejecutora, nom_entidad_ejecutora, desc_entidad_ejecutora, estado], (err, results) => {
+    connection.query('INSERT INTO entidad_ejecutora (id_entidad_ejecutora, nom_entidad_ejecutora, desc_entidad_ejecutora, estado) VALUES (?, ?, ?, ?)', [id_entidad_ejecutora, nom_entidad_ejecutora, desc_entidad_ejecutora, estado], (err, results) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al crear la entidad ejecutora' });
@@ -47,7 +47,7 @@ router.post('/create', (req, res) => {
 //modificar
 router.put('/update/', (req, res) => {   
     const { nom_entidad_ejecutora, desc_entidad_ejecutora, estado ,id_entidad_ejecutora} = req.body;
-    connection.query('UPDATE ENTIDAD_EJECUTORA SET nom_entidad_ejecutora = ?, desc_entidad_ejecutora = ?, estado = ? WHERE id_entidad_ejecutora = ?', [nom_entidad_ejecutora, desc_entidad_ejecutora, estado, id_entidad_ejecutora], (err) => {
+    connection.query('UPDATE entidad_ejecutora SET nom_entidad_ejecutora = ?, desc_entidad_ejecutora = ?, estado = ? WHERE id_entidad_ejecutora = ?', [nom_entidad_ejecutora, desc_entidad_ejecutora, estado, id_entidad_ejecutora], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al actualizar la entidad ejecutora' });
@@ -59,7 +59,7 @@ router.put('/update/', (req, res) => {
 //eliminar
 router.delete('/delete/:id', (req, res) => {
     const { id } = req.params;
-    connection.query('DELETE FROM ENTIDAD_EJECUTORA WHERE id_entidad_ejecutora = ?', [id], (err) => {
+    connection.query('DELETE FROM entidad_ejecutora WHERE id_entidad_ejecutora = ?', [id], (err) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Hubo un error al eliminar la entidad ejecutora' });

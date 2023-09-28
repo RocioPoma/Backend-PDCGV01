@@ -65,7 +65,7 @@ router.put('/update/', (req, res) => {
 router.delete('/delete/:id', (req, res) => {
   const { id } = req.params;
   console.log(id);
-  connection.query('DELETE FROM ENTIDAD WHERE id_entidad = ?', [id], (err) => {
+  connection.query('DELETE FROM entidad WHERE id_entidad = ?', [id], (err) => {
     if (err) {
       console.error(err);
       res.status(500).json({ message: 'Hubo un error al eliminar la entidad' });

@@ -17,7 +17,7 @@ const selectParams = (query = "", params = []) => {
 //obtener Etapa por id de Tipología
 router.get("/getByIdTipologia/:id_tipologia", (req, res) => {
   const id_tipologia = req.params.id_tipologia;
-  var query = "SELECT * FROM ETAPA  WHERE id_tipologia=? and estado='true'";
+  var query = "SELECT * FROM etapa  WHERE id_tipologia=? and estado='true'";
   connection.query(query, [id_tipologia], (err, results) => {
     if (err) {
       console.error(err);
@@ -31,7 +31,7 @@ router.get("/getByIdTipologia/:id_tipologia", (req, res) => {
 });
 router.get("/getFinanciamiento/:id_etapa_proyecto", (req, res) => {
   const { id_etapa_proyecto } = req.params;
-  const query = `SELECT FN.costo_inicial AS monto_inicial,FN.costo_final AS monto_final,FN.id_entidad_financiera FROM FINANCIAMIENTO AS FN WHERE FN.id_etapa_proyecto=?`;
+  const query = `SELECT FN.costo_inicial AS monto_inicial,FN.costo_final AS monto_final,FN.id_entidad_financiera FROM financiamiento AS FN WHERE FN.id_etapa_proyecto=?`;
   connection.query(query, [id_etapa_proyecto], (err, result) => {
     if (err) {
       res.status(400).json({ msg: "error consulta", err });
@@ -45,7 +45,7 @@ router.get("/getEtapaByIdEtapaProyecto", (req, res) => {
   const { id_proyecto, id_etapa } = req.query;
   if (id_proyecto === null || id_etapa === null)
     res.status(400).json({ msg: "se deben enviar id_proyecto e id_etapa" });
-  const query = ` SELECT ETP.id_etapa_proyecto,ETP.id_etapa,ETP.fecha_seguimiento,ETP.id_proyecto,ETP.fuente_de_informacion ,ETP.id_entidad_ejecutora FROM ETAPA_PROYECTO AS ETP WHERE ETP.id_proyecto = ? AND ETP.id_etapa = ? order by ETP.id_etapa_proyecto desc limit 1; `;
+  const query = ` SELECT ETP.id_etapa_proyecto,ETP.id_etapa,ETP.fecha_seguimiento,ETP.id_proyecto,ETP.fuente_de_informacion ,ETP.id_entidad_ejecutora FROM etapa_proyecto AS ETP WHERE ETP.id_proyecto = ? AND ETP.id_etapa = ? order by ETP.id_etapa_proyecto desc limit 1; `;
   connection.query(query, [id_proyecto, id_etapa], (err, result) => {
     if (err) {
       res.status(500).json({ msg: "error", err });
@@ -58,10 +58,10 @@ router.get("/getEtapasByIdProyecto/:id_proyecto", (req, res) => {
   const { id_proyecto } = req.params;
     const query = `SELECT ETP.id_etapa_proyecto,ETP.fuente_de_informacion,
     ETA.nombre_etapa,DATE_FORMAT(ETP.fecha_seguimiento, '%d-%m-%Y') AS fecha_seguimiento,
-    SEGF.avance_seguimiento_fisico FROM ETAPA_PROYECTO AS ETP 
-    JOIN ETAPA AS ETA ON ETA.id_etapa = ETP.id_etapa 
-    JOIN SEGUIMIENTO_FISICO AS SEGF ON SEGF.id_etapa_proyecto = ETP.id_etapa_proyecto
-    JOIN FINANCIAMIENTO AS FIN ON FIN.id_etapa_proyecto = ETP.id_etapa_proyecto
+    SEGF.avance_seguimiento_fisico FROM etapa_proyecto AS ETP 
+    JOIN etapa AS ETA ON ETA.id_etapa = ETP.id_etapa 
+    JOIN seguimiento_fisico AS SEGF ON SEGF.id_etapa_proyecto = ETP.id_etapa_proyecto
+    JOIN financiamiento AS FIN ON FIN.id_etapa_proyecto = ETP.id_etapa_proyecto
     WHERE ETP.id_proyecto = ?;`;
     // const queryAdjFin=`
     // SELECT SEGFIN.monto FROM seguimiento_financiero AS SEGFIN 
@@ -100,7 +100,7 @@ router.get("/getMontos/:id_etapa_proyecto", (req, res) => {
   const { id_etapa_proyecto } = req.params;
   const queryFn = `SELECT SUM(FIN.costo_final) AS coste_final FROM financiamiento AS FIN 
                   WHERE FIN.id_etapa_proyecto = ?;`;
-  const queryFnIds = `SELECT FIN.id_financiamiento FROM FINANCIAMIENTO AS FIN WHERE FIN.id_etapa_proyecto = ?`;
+  const queryFnIds = `SELECT FIN.id_financiamiento FROM financiamiento AS FIN WHERE FIN.id_etapa_proyecto = ?`;
 
   const querySigFn = `SELECT SEGFIN.monto FROM financiamiento AS FIN 
   JOIN seguimiento_financiero AS SEGFIN ON SEGFIN.id_financiamiento = FIN.id_financiamiento
@@ -142,7 +142,7 @@ router.get("/get_seguimientos/:id_etapa_proyecto", (req, res) => {
   const query = `SELECT SEGF.id_etapa_proyecto,SEGF.avance_seguimiento_fisico,
   DATE_FORMAT(SEGF.fecha_seguimiento_fisico, '%d-%m-%Y') AS fecha_seguimiento_fisico,SEGF.adjunto_fisico, 
     (SELECT COUNT(FIN.id_financiamiento) FROM financiamiento AS FIN WHERE FIN.id_etapa_proyecto = ?) AS 'nro_financiamientos'
-    FROM SEGUIMIENTO_FISICO AS SEGF 
+    FROM seguimiento_fisico AS SEGF 
     WHERE SEGF.id_etapa_proyecto = ? ORDER BY SEGF.avance_seguimiento_fisico ASC;`;
   const queryFin =`
   SELECT FIN.id_financiamiento,FIN.costo_inicial,FIN.costo_final,SEGF.id_seguimiento_financiero,SEGF.monto ,SEGF.adjunto_financiero FROM financiamiento AS FIN 
@@ -197,7 +197,7 @@ router.post("/registrarEtapa_Proyecto",[multer.array('documentos')], (req, res) 
     fecha_seguimiento,
     ...resForm
   } = etapa;
-  const query = `INSERT INTO ETAPA_PROYECTO (fecha_seguimiento,id_etapa,id_proyecto,fuente_de_informacion,id_entidad_ejecutora) VALUES(?,?,?,?,?);`;
+  const query = `INSERT INTO etapa_proyecto (fecha_seguimiento,id_etapa,id_proyecto,fuente_de_informacion,id_entidad_ejecutora) VALUES(?,?,?,?,?);`;
   connection.query(
     query,
     [
@@ -256,7 +256,7 @@ const addFinaciamiento = (resForm) => {
       monto_inicial: costo_inicial,
       monto_final: costo_final,
     } = financiamiento[fnItem];
-    const query = `INSERT INTO FINANCIAMIENTO (costo_inicial,costo_final,id_entidad_financiera,id_etapa_proyecto) VALUES(?,?,?,?);`;
+    const query = `INSERT INTO financiamiento (costo_inicial,costo_final,id_entidad_financiera,id_etapa_proyecto) VALUES(?,?,?,?);`;
     connection.query(
       query,
       [costo_inicial, costo_final, id_entidad_financiera, id_etapa_proyecto],
@@ -270,7 +270,7 @@ const addFinaciamiento = (resForm) => {
               throw new Error(err);
             }
             id_financiamiento = result[0].id_financiamiento;
-            const queryFnSeg = `INSERT INTO SEGUIMIENTO_FINANCIERO (monto,comentario,id_financiamiento,fecha_seguimiento,adjunto_financiero) VALUES(?,?,?,?,?);`;
+            const queryFnSeg = `INSERT INTO seguimiento_financiero (monto,comentario,id_financiamiento,fecha_seguimiento,adjunto_financiero) VALUES(?,?,?,?,?);`;
             const { monto } = seguimiento_financiamiento[fnItem];
             connection.query(
               queryFnSeg,
@@ -297,7 +297,7 @@ const addSeguimientoFisico = (segForm) => {
     fecha_seguimiento,
     adjunto_fisico,
   } = segForm;
-  const query = `INSERT INTO SEGUIMIENTO_FISICO (avance_seguimiento_fisico,comentario,id_etapa_proyecto,fecha_seguimiento_fisico,adjunto_fisico) VALUES(?,?,?,?,?);`;
+  const query = `INSERT INTO seguimiento_fisico (avance_seguimiento_fisico,comentario,id_etapa_proyecto,fecha_seguimiento_fisico,adjunto_fisico) VALUES(?,?,?,?,?);`;
   connection.query(
     query,
     [
@@ -330,7 +330,7 @@ router.post("/registrarAvanceSeguimientoProyecto", [multer.array('documentos')],
     adjunto_fisico = files[0]?.filename || null,
     adjunto_financiero = files[1]?.filename || null,
   } = seguimiento;
-  const querySegFis = `INSERT INTO SEGUIMIENTO_FISICO (id_etapa_proyecto,avance_seguimiento_fisico,fecha_seguimiento_fisico,comentario,adjunto_fisico) VALUES(?,?,?,?,?);`;
+  const querySegFis = `INSERT INTO seguimiento_fisico (id_etapa_proyecto,avance_seguimiento_fisico,fecha_seguimiento_fisico,comentario,adjunto_fisico) VALUES(?,?,?,?,?);`;
   connection.query(
     querySegFis,
     [
@@ -347,7 +347,7 @@ router.post("/registrarAvanceSeguimientoProyecto", [multer.array('documentos')],
       }
     }
   );
-  const queryEtapa = `SELECT FN.id_financiamiento FROM FINANCIAMIENTO AS FN WHERE FN.id_etapa_proyecto = ?;`;
+  const queryEtapa = `SELECT FN.id_financiamiento FROM financiamiento AS FN WHERE FN.id_etapa_proyecto = ?;`;
   let financiamiento_id = [];
   connection.query(queryEtapa, [id_etapa_proyecto], (err, result) => {
     if (err) res.status(500).json({ msg: "erro al en seleccion" });

@@ -5,7 +5,7 @@ var auth = require('../services/authentication');
 
 //list 
 router.get('/get', (req, res) => {
-  connection.query('SELECT * FROM LINEA_DE_ACCION', (err, results) => {
+  connection.query('SELECT * FROM linea_de_accion', (err, results) => {
     if (err) {
       console.error(err);
       res.status(500).json({ message: 'Hubo un error al obtener los LINEAS_ESTRATEGICAS' });
@@ -18,7 +18,7 @@ router.get('/get', (req, res) => {
 //obtener LineaDeAccion por id de AccionEstratégica
 router.get('/getByIdLineaEstrategica/:id_linea_estrategica', (req, res) => {
   const id_linea_estrategica = req.params.id_linea_estrategica;
-  var query = 'SELECT LA.* FROM LINEA_DE_ACCION LA WHERE id_linea_estrategica=?';
+  var query = 'SELECT LA.* FROM linea_de_accion LA WHERE id_linea_estrategica=?';
   connection.query(query, [id_linea_estrategica], (err, results) => {
     if (err) {
       console.error(err);
@@ -33,7 +33,7 @@ router.get('/getByIdLineaEstrategica/:id_linea_estrategica', (req, res) => {
 router.put('/update/:id', (req, res) => {
   const { id } = req.params;
   const { descripcion } = req.body;
-  connection.query('UPDATE LINEA_DE_ACCION SET descripcion = ? WHERE id_linea_accion = ?', [descripcion, id], (err) => {
+  connection.query('UPDATE linea_de_accion SET descripcion = ? WHERE id_linea_accion = ?', [descripcion, id], (err) => {
     if (err) {
       console.error(err);
       res.status(500).json({ message: 'Hubo un error al editar la línea de acción' });

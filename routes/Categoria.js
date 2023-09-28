@@ -5,7 +5,7 @@ var auth = require('../services/authentication');
 
 // Ruta para obtener todas las categorías
 router.get('/get', (req, res) => {
-  const sql = 'SELECT * FROM CATEGORIA';
+  const sql = 'SELECT * FROM categoria';
   connection.query(sql, (err, result) => {
     if (err) throw err;
     res.json(result);
@@ -15,7 +15,7 @@ router.get('/get', (req, res) => {
 // Ruta para obtener una categoría por su ID
 router.get('/buscar/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'SELECT * FROM CATEGORIA WHERE id_categoria = ?';
+  const sql = 'SELECT * FROM categoria WHERE id_categoria = ?';
   connection.query(sql, id, (err, result) => {
     if (err) throw err;
     res.json(result[0]);
@@ -25,7 +25,7 @@ router.get('/buscar/:id', (req, res) => {
 // Ruta para crear una nueva categoría
 router.post('/create', (req, res) => {
   const { nom_categoria, desc_categoria, estado } = req.body;
-  const sql = 'INSERT INTO CATEGORIA (nom_categoria, desc_categoria, estado) VALUES (?, ?, ?)';
+  const sql = 'INSERT INTO categoria (nom_categoria, desc_categoria, estado) VALUES (?, ?, ?)';
   connection.query(sql, [nom_categoria, desc_categoria, estado], (err, result) => {
     if (err) throw err;
     res.status(201).json({ message: 'Categoría creada correctamente' });
@@ -62,7 +62,7 @@ router.patch('/updateStatus',(req,res)=>{
 // Ruta para eliminar una categoría
 router.delete('/delete/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM CATEGORIA WHERE id_categoria = ?';
+  const sql = 'DELETE FROM categoria WHERE id_categoria = ?';
   connection.query(sql, id, (err, result) => {
     if (err) throw err;
     res.json({ message: 'Categoría eliminada correctamente' });

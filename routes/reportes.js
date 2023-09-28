@@ -68,9 +68,9 @@ router.get("/pdc_etapa", (req, res) => {
     SUM(CASE WHEN UltimaEtapa.ultima_etapa = 10 THEN 1 ELSE 0 END) AS Aprobacion,
     SUM(CASE WHEN UltimaEtapa.ultima_etapa = 11 THEN 1 ELSE 0 END) AS Organizacion
 FROM
-    INDICADOR AS I
+    indicador AS I
 LEFT JOIN
-    PROYECTO AS P
+    proyecto AS P
 ON
     I.id_indicador = P.id_indicador
 LEFT JOIN
@@ -79,9 +79,9 @@ LEFT JOIN
             EP1.id_proyecto,
             MAX(E.id_etapa) AS ultima_etapa
         FROM
-            ETAPA_PROYECTO AS EP1
+            etapa_proyecto AS EP1
         INNER JOIN
-            ETAPA AS E
+            etapa AS E
         ON
             EP1.id_etapa = E.id_etapa
         GROUP BY
@@ -149,7 +149,7 @@ router.get("/indicadores", async (req, res) => {
     LEFT JOIN etapa_proyecto AS ETAP ON ETAP.id_proyecto = PROY.id_proyecto
     LEFT JOIN etapa AS ETA ON ETA.id_etapa = ETAP.id_etapa
     LEFT JOIN seguimiento_fisico AS SEGF ON SEGF.id_etapa_proyecto = ETAP.id_etapa_proyecto
-    WHERE IND.id_indicador = ?;`;
+    WHERE IND.id_indicador = ?;`; 
   const queryPeso = `
   	SELECT SUM(ETA.peso_etapa) AS pesos_anteriores FROM etapa AS ETA
 		WHERE ETA.id_tipologia = ?	 AND ETA.id_etapa < ?`;

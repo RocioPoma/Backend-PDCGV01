@@ -7,7 +7,7 @@ function authenticateToken(req,res,next){
     const token = authHeader && authHeader.split(' ')[1]
     if(token == null)
     return res.sendStatus(401);
-    jwt.verify(token,process.env.ACCESS_TOKEN,(err,response)=>{
+    jwt.verify(token,'qwerty123',(err,response)=>{
         if(err)
         return res.sendStatus(403);
         res.locals=response;

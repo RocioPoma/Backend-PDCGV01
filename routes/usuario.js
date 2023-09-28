@@ -152,7 +152,7 @@ router.post('/login',(req,res)=>{
                 //GUARDAMOS CIFRADO LA CONTRASENA
                 const data = { nombre: results[0].nombre, estado: results[0].estado,rol: results[0].rol,ap_paterno: results[0].ap_paterno,ap_materno: results[0].ap_materno,ci: results[0].ci };               
                 const response ={ email: results[0].email, rol: results[0].rol}
-                const accessToken = jwt.sign(response,process.env.ACCESS_TOKEN,{ expiresIn: '8h'})
+                const accessToken = jwt.sign(response,'qwertyToken',{ expiresIn: '8h'})
                 res.status(200).json({ token: accessToken, data:data});
             }
             else{

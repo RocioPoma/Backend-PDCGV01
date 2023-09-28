@@ -32,9 +32,10 @@ router.get('/get', (req, res) => {
     i.nombre_indicador,
     GROUP_CONCAT(DISTINCT com.id SEPARATOR ', ') AS comunidades,
     GROUP_CONCAT(DISTINCT com.nombre SEPARATOR ', ') AS nombre_comunidades,
+    GROUP_CONCAT(DISTINCT alc.cantidad SEPARATOR ',') AS cantidades,
+    GROUP_CONCAT(DISTINCT alc.id_unidad_medicion SEPARATOR ',') AS mediciones,
     alc.cantidad,
     um.nom_unidad AS unidad_medicion_alcance,   
-    
     (SELECT e.nombre_etapa FROM etapa_proyecto ep
     INNER JOIN etapa e ON ep.id_etapa = e.id_etapa
     WHERE ep.id_proyecto = p.id_proyecto

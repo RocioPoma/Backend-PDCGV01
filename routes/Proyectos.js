@@ -188,7 +188,7 @@ router.get('/ultimoRegistro/', (req, res) => {
 router.post('/create', (req, res) => {
   let proyecto = req.body;
   const { nom_proyecto, fecha_inicio, fecha_fin, fecha_registro, area, coordenada_x, coordenada_y, cantidad, hombres, mujeres, id_categoria, id_tipologia, id_indicador, id_cuenca, id_accion_estrategica, estado } = req.body;
-  const sql = 'INSERT INTO PROYECTO (nom_proyecto, fecha_inicio, fecha_fin, fecha_registro,area, coordenada_x, coordenada_y, cantidad,hombres,mujeres,id_categoria, id_tipologia, id_indicador, id_cuenca, id_accion_estrategica, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?)';
+  const sql = 'INSERT INTO proyecto (nom_proyecto, fecha_inicio, fecha_fin, fecha_registro,area, coordenada_x, coordenada_y, cantidad,hombres,mujeres,id_categoria, id_tipologia, id_indicador, id_cuenca, id_accion_estrategica, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?)';
   connection.query(sql, [nom_proyecto, fecha_inicio, fecha_fin, fecha_registro, area, coordenada_x, coordenada_y, cantidad, hombres, mujeres, id_categoria, id_tipologia, id_indicador, id_cuenca, id_accion_estrategica, estado], (err, result) => {
     if (err) throw err;
     res.status(201).json({ message: 'Proyecto creado correctamente' });
@@ -311,7 +311,7 @@ function add_alcance(id_proyecto, ObjAlcance, id_unidad_medicion, cantidad) {
     // console.log('Agregado.!!!')
   });
 
-  const query = "INSERT INTO ALCANCE (cantidad, id_unidad_medicion,id_proyecto) VALUES (?, ?,?)";
+  const query = "INSERT INTO alcance (cantidad, id_unidad_medicion,id_proyecto) VALUES (?, ?,?)";
   ObjAlcance.forEach((alcance) => {
     //console.log('id_proyecto: ' + id_proyecto + '  id_ciudad_comunidad: ' + proyecto_comunidad.id);
     connection.query(query, [alcance.cantidad, alcance.id_unidad_medicion, id_proyecto], (err, results) => {

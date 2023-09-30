@@ -139,7 +139,7 @@ router.get("/indicadores", async (req, res) => {
     PROY.nom_proyecto,
     ETA.id_etapa,
     ETA.nombre_etapa,
-    ETa.peso_etapa,
+    ETA.peso_etapa,
     SEGF.avance_seguimiento_fisico,
     ALC.cantidad,
     PROY.id_tipologia 

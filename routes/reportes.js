@@ -524,14 +524,14 @@ LEFT JOIN proyecto p ON p.id_accion_estrategica IN (
 )
 LEFT JOIN etapa_proyecto ep ON p.id_proyecto = ep.id_proyecto
 LEFT JOIN financiamiento f ON ep.id_etapa_proyecto = f.id_etapa_proyecto
-AND m.id_municipio = (
+AND m.id_municipio IN (
   SELECT DISTINCT c.id_municipio
   FROM ciudad_o_comunidad c
   INNER JOIN proyecto_ciudad_o_comunidad pcc ON c.id = pcc.id_ciudad_comunidad
   WHERE pcc.id_proyecto = p.id_proyecto
 )
 GROUP BY le.id_linea_estrategica, le.descripcion
-ORDER BY le.id_linea_estrategica`;
+ORDER BY le.id_linea_estrategica;`;
   connection.query(query, (err, result) => {
     if (err)
       res

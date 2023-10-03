@@ -4,7 +4,6 @@ require('dotenv').config();
 var connection = mysql.createConnection({
     // port: 18005,
     // host: '181.188.156.195',
-
     //  port: 18006,
     //  host: '181.188.156.195',
 

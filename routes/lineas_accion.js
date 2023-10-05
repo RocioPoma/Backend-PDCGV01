@@ -14,7 +14,7 @@ router.get('/get', (req, res) => {
     }
   });
 });
-
+ 
 //obtener LineaDeAccion por id de AccionEstratégica
 router.get('/getByIdLineaEstrategica/:id_linea_estrategica', (req, res) => {
   const id_linea_estrategica = req.params.id_linea_estrategica;

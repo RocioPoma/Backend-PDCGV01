@@ -238,21 +238,34 @@ const selectParams = (query = "", params = []) => {
   });
 };
 router.get("/indicadores", async (req, res) => {
-  const query = `
-        SELECT IND.id_indicador,IND.nombre_indicador,UND.nom_unidad,
-        LNBC.cantidad, LNB.cantidad_glb_identificada,met.cobertura_meta,
-        (SELECT COUNT(PR.id_proyecto) FROM proyecto AS PR INNER JOIN alcance as ALC ON ALC.id_unidad_medicion = IND.id_unidad_medicion AND PR.id_proyecto = ALC.id_proyecto WHERE PR.id_indicador=IND.id_indicador) AS 'Acciones',
-        ndc.nom_meta_ndc,pdes.nom_indicador_pdes,pprh.nom_indicador_pprh 
-        FROM indicador AS IND
-          INNER JOIN unidad_medicion AS UND ON IND.id_unidad_medicion = UND.id_unidad_medicion
-          LEFT JOIN ndc ON ndc.id_ndc = IND.id_ndc
-          LEFT JOIN pdes ON pdes.id_pdes = IND.id_pdes
-          LEFT JOIN pprh ON pprh.id_pprh = IND.id_pprh
-          LEFT JOIN linea_base_cobertura AS LNBC ON LNBC.id_indicador = IND.id_indicador
-          LEFT JOIN linea_base AS LNB ON LNB.id_linea_base = LNBC.id_linea_base
-          LEFT JOIN metas AS met ON met.id_indicador = IND.id_indicador
-          GROUP BY IND.id_indicador;
-          `;
+  // const query = `
+  //       SELECT IND.id_indicador,IND.nombre_indicador,UND.nom_unidad,
+  //       LNBC.cantidad, LNB.cantidad_glb_identificada,met.cobertura_meta,
+  //       (SELECT COUNT(PR.id_proyecto) FROM proyecto AS PR INNER JOIN alcance as ALC ON ALC.id_unidad_medicion = IND.id_unidad_medicion AND PR.id_proyecto = ALC.id_proyecto WHERE PR.id_indicador=IND.id_indicador) AS 'Acciones',
+  //       ndc.nom_meta_ndc,pdes.nom_indicador_pdes,pprh.nom_indicador_pprh 
+  //       FROM indicador AS IND
+  //         INNER JOIN unidad_medicion AS UND ON IND.id_unidad_medicion = UND.id_unidad_medicion
+  //         LEFT JOIN ndc ON ndc.id_ndc = IND.id_ndc
+  //         LEFT JOIN pdes ON pdes.id_pdes = IND.id_pdes
+  //         LEFT JOIN pprh ON pprh.id_pprh = IND.id_pprh
+  //         LEFT JOIN linea_base_cobertura AS LNBC ON LNBC.id_indicador = IND.id_indicador
+  //         LEFT JOIN linea_base AS LNB ON LNB.id_linea_base = LNBC.id_linea_base
+  //         LEFT JOIN metas AS met ON met.id_indicador = IND.id_indicador
+  //         GROUP BY IND.id_indicador;
+  //         `;
+  const query=`SELECT IND.id_indicador,IND.nombre_indicador,UND.nom_unidad,
+  LNBC.cantidad, LNB.cantidad_glb_identificada,met.cobertura_meta,
+  (SELECT COUNT(PR.id_proyecto) FROM proyecto AS PR WHERE  PR.id_indicador = IND.id_indicador) AS 'Acciones',
+  ndc.nom_meta_ndc,pdes.nom_indicador_pdes,pprh.nom_indicador_pprh 
+  FROM indicador AS IND
+    INNER JOIN unidad_medicion AS UND ON IND.id_unidad_medicion = UND.id_unidad_medicion
+    LEFT JOIN ndc ON ndc.id_ndc = IND.id_ndc
+    LEFT JOIN pdes ON pdes.id_pdes = IND.id_pdes
+    LEFT JOIN pprh ON pprh.id_pprh = IND.id_pprh
+    LEFT JOIN linea_base_cobertura AS LNBC ON LNBC.id_indicador = IND.id_indicador
+    LEFT JOIN linea_base AS LNB ON LNB.id_linea_base = LNBC.id_linea_base
+    LEFT JOIN metas AS met ON met.id_indicador = IND.id_indicador
+    GROUP BY IND.id_indicador;`;
   const queryInd = `
     SELECT PROY.id_proyecto,
     PROY.nom_proyecto,
@@ -260,15 +273,17 @@ router.get("/indicadores", async (req, res) => {
     ETA.nombre_etapa,
     ETA.peso_etapa,
     SEGF.avance_seguimiento_fisico,
-    ALC.cantidad,
     PROY.id_tipologia 
     FROM indicador AS IND
-    INNER JOIN proyecto AS PROY ON PROY.id_indicador = IND.id_indicador
-    INNER JOIN alcance as ALC ON PROY.id_proyecto = ALC.id_proyecto AND IND.id_unidad_medicion = ALC.id_unidad_medicion
+    INNER JOIN proyecto AS PROY ON PROY.id_indicador = IND.id_indicador 
     LEFT JOIN etapa_proyecto AS ETAP ON ETAP.id_proyecto = PROY.id_proyecto
     LEFT JOIN etapa AS ETA ON ETA.id_etapa = ETAP.id_etapa
     LEFT JOIN seguimiento_fisico AS SEGF ON SEGF.id_etapa_proyecto = ETAP.id_etapa_proyecto
     WHERE IND.id_indicador = ?;`;
+  const queryAlcanceProyect=`
+    SELECT ALC.cantidad,ALC.id_unidad_medicion FROM proyecto as PR 
+    INNER JOIN alcance as ALC ON PR.id_proyecto = ALC.id_proyecto
+    where PR.id_proyecto = ? order by ALC.id_alcance asc;`;
   const queryPeso = `
   	SELECT SUM(ETA.peso_etapa) AS pesos_anteriores FROM etapa AS ETA
 		WHERE ETA.id_tipologia = ?	 AND ETA.id_etapa < ?`;
@@ -288,7 +303,6 @@ router.get("/indicadores", async (req, res) => {
         PDES: report_result?.nom_indicador_pdes || "",
         PPRH: report_result?.nom_indicador_pprh || "",
       };
-
       let total = 0;
       const result2 = await selectParams(queryInd, [
         report_result.id_indicador,
@@ -300,18 +314,18 @@ router.get("/indicadores", async (req, res) => {
           nom_proyecto,
           id_tipologia,
           peso_etapa,
-          cantidad,
           id_etapa,
           nombre_etapa,
           avance_seguimiento_fisico,
         } of result2) {
+          const alcances = await selectParams(queryAlcanceProyect,[id_proyecto]);
           if (data.length === 0) {
             if (id_etapa) {
               data.push({
                 id_proyecto,
                 nom_proyecto,
                 id_tipologia,
-                cantidad: cantidad || 0,
+                alcances,
                 pesos_anteriores: 0,
                 ultima_etapa: {
                   id_etapa,
@@ -325,7 +339,7 @@ router.get("/indicadores", async (req, res) => {
                 id_proyecto,
                 nom_proyecto,
                 id_tipologia,
-                cantidad: cantidad || 0,
+                alcances,
                 pesos_anteriores: 0,
                 ultima_etapa: null,
               });
@@ -365,7 +379,7 @@ router.get("/indicadores", async (req, res) => {
                   id_proyecto,
                   id_tipologia,
                   nom_proyecto,
-                  cantidad: cantidad || 0,
+                  alcances,
                   pesos_anteriores: 0,
                   ultima_etapa: {
                     id_etapa,
@@ -379,65 +393,68 @@ router.get("/indicadores", async (req, res) => {
                   id_proyecto,
                   id_tipologia,
                   nom_proyecto,
-                  cantidad: cantidad || 0,
+                  alcances,
                   pesos_anteriores: 0,
                   ultima_etapa: null,
                 });
               }
             }
           }
-          //console.log(data);
         }
-        for (const proy of data) {
-          if (proy.ultima_etapa) {
-            const result = await selectParams(queryPeso, [
-              proy.id_tipologia,
-              proy.ultima_etapa.id_etapa,
-            ]);
-            proy.pesos_anteriores = result[0].pesos_anteriores || 0;
-          }
-        }
-
-        for (const proy of data) {
-          if (proy.ultima_etapa) {
-            console.log('indicador: ', report.nombre_indicador);
-            console.log(report.uni_ind);
-            console.log('proyecto: ', proy);
-            const peso_etapa_actual =
-              (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
-              100;
-
-            let pes =
-              peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
-            let cantidad = proy.cantidad;
-            console.log('cantidad:', cantidad);
-            //console.log('%',(cantidad*pes/100));
-            console.log("cantidad medida:", (cantidad * pes) / 100);
-            total += (cantidad * pes) / 100;
-            //indice = indice+(cantidad*pes/100);
-          }
-        }
-      }
-      // console.log('cantidad total:',total);
       let formula = 0;
       let formula_Porc = 0;
       let linea_base_Porc = 0;
       report.LB_2020 = report_result.cantidad;
-
       switch (report.uni_ind) {
         case '%':
           if (report.COD === 14) {
             // linea_base_Porc= (report_result.cantidad*100)/report.Meta_2025;
-            formula = (total) / report_result.cantidad;
+            for (const proy of data) {
+              if (proy.ultima_etapa) {
+                const result = await selectParams(queryPeso, [
+                  proy.id_tipologia,
+                  proy.ultima_etapa.id_etapa,
+                ]);
+                proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+                const peso_etapa_actual =
+                  (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                  100;
+                let pes =
+                  peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+                let cantidad = proy.alcances[1].cantidad;
+                total += (cantidad * pes) / 100;
+              }
+            }
+            formula = 100 * (total) / report_result.cantidad;
             formula_Porc = 100 * (total / report_result.cantidad) / (report.Meta_2025 / 100);
             if (report["#Acciones"] > 0) {
               report['%_ind_efectivo'] = formula_Porc > 0 ? formula_Porc.toFixed(2) : 0;
             }
           } else {
+            for (const proy of data) {
+              if (proy.ultima_etapa) {
+                const result = await selectParams(queryPeso, [
+                  proy.id_tipologia,
+                  proy.ultima_etapa.id_etapa,
+                ]);
+                proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+                const peso_etapa_actual =
+                  (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                  100;
+                let pes =
+                  peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+                let cantidad = proy.alcances[0].cantidad;
+                total += (cantidad * pes) / 100;
+                console.log('total proyecto:',total);
+              }
+            }
+            console.log('agua potable :,',total);
             linea_base_Porc = (100 * report_result.cantidad / report_result.cantidad_glb_identificada).toFixed(2);
             report.LB_2020 = linea_base_Porc;
-            formula = (report_result.cantidad + total) / report_result.cantidad_glb_identificada;
+            
+            formula =  100 * (report_result.cantidad + total) / report_result.cantidad_glb_identificada;
             formula_Porc = 100 * (formula - linea_base_Porc) / (report.Meta_2025 - linea_base_Porc);
+            
             if (report["#Acciones"] > 0) {
               report['%_ind_efectivo'] = formula_Porc > 0 ? formula_Porc.toFixed(2) : 0;
             }
@@ -446,7 +463,22 @@ router.get("/indicadores", async (req, res) => {
           break;
         case 'PTAR':
           //linea_base_Porc= (report_result.cantidad*100)/report.Meta_2025;
-
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           console.log('es ptar', total);
           formula = total;
           formula_Porc = 100 * total / (report.Meta_2025 - report_result.cantidad);
@@ -456,6 +488,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'ha':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           if (report.COD === 12) {
             formula = total;
             formula_Porc = 100 * (total - report_result.cantidad) / (report.Meta_2025 - report_result.cantidad);
@@ -477,6 +525,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'Industrias':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -484,6 +548,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'tm/ha':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * (total - report_result.cantidad) / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -491,6 +571,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'APP':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -498,6 +594,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'GAM':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -505,6 +617,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'hm3':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * (total - report_result.cantidad) / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -512,6 +640,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'proyectos':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -519,6 +663,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'ICA':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / report.Meta_2025;
           if (report["#Acciones"] > 0) {
@@ -526,6 +686,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'Informes':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -533,6 +709,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'm':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * (total - report_result.cantidad) / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -540,6 +732,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'normas_instrumentos':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / (report.Meta_2025 - report_result.cantidad);
           if (report["#Acciones"] > 0) {
@@ -547,6 +755,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'IGH':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[1].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / report.Meta_2025;
           if (report["#Acciones"] > 0) {
@@ -554,6 +778,22 @@ router.get("/indicadores", async (req, res) => {
           }
           break;
         case 'habitantes':
+          for (const proy of data) {
+            if (proy.ultima_etapa) {
+              const result = await selectParams(queryPeso, [
+                proy.id_tipologia,
+                proy.ultima_etapa.id_etapa,
+              ]);
+              proy.pesos_anteriores = result[0].pesos_anteriores || 0;
+              const peso_etapa_actual =
+                (proy.ultima_etapa.avance_etapa * proy.ultima_etapa.peso_etapa) /
+                100;
+              let pes =
+                peso_etapa_actual + Number.parseInt(proy.pesos_anteriores);
+              let cantidad = proy.alcances[0].cantidad;
+              total += (cantidad * pes) / 100;
+            }
+          }
           formula = total;
           formula_Porc = 100 * total / report.Meta_2025;
           if (report["#Acciones"] > 0) {
@@ -566,10 +806,11 @@ router.get("/indicadores", async (req, res) => {
           console.log('indicador no encontrado');
           break;
       }
+    }
       reportes.push(report);
     }
-    //* RESPUESTA
     res.json(reportes);
+
   } catch (error) {
     res.status(500).json({ error, msg: "error al obtener datos" });
   }

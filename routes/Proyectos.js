@@ -11,7 +11,7 @@ const { BADFAMILY } = require('dns');
 
 
 // Ruta para obtener todos los proyectos
-router.get('/get', (req, res) => {
+router.get('/get',async (req, res) => {
   // const sql = "SELECT P.id_proyecto,  P.nom_proyecto, fecha_inicio, fecha_fin, DATE_FORMAT(P.fecha_inicio, '%d-%m-%Y') as fecha_inicio_convert,  DATE_FORMAT(P.fecha_fin, '%d-%m-%Y') as fecha_fin_convert,  DATE_FORMAT(P.fecha_registro, '%d-%m-%Y') as fecha_registro,  P.area,  P.coordenada_x,  P.coordenada_y,  P.id_categoria,  P.id_tipologia,  P.id_indicador,  P.id_cuenca,  P.estado,  P.cantidad,  P.hombres,  P.mujeres,  M.nombre_municipio,  M.id_municipio,  C.nom_cuenca AS NombreCuenca,  CAT.nom_categoria AS NombreCategoria,  TIP.nom_tipologia AS NombreTipologia FROM  PROYECTO AS P JOIN PROYECTO_CIUDAD_O_COMUNIDAD AS PCOC ON P.id_proyecto = PCOC.id_proyecto JOIN CIUDAD_O_COMUNIDAD AS CC ON PCOC.id_ciudad_comunidad = CC.id JOIN MUNICIPIO AS M ON CC.id_municipio = M.id_municipio JOIN CUENCA AS C ON P.id_cuenca = C.id_cuenca JOIN CATEGORIA AS CAT ON P.id_categoria = CAT.id_categoria JOIN TIPOLOGIA AS TIP ON P.id_tipologia = TIP.id_tipologia GROUP BY P.id_proyecto;"
   const sql = `  
     SELECT 
@@ -30,12 +30,6 @@ router.get('/get', (req, res) => {
     la.descripcion AS linea_de_accion,
     ae.descripcion AS accion_estrategica,
     i.nombre_indicador,
-    GROUP_CONCAT(DISTINCT com.id SEPARATOR ', ') AS comunidades,
-    GROUP_CONCAT(DISTINCT com.nombre SEPARATOR ', ') AS nombre_comunidades,
-    GROUP_CONCAT(DISTINCT alc.cantidad SEPARATOR ',') AS cantidades,
-    GROUP_CONCAT(DISTINCT alc.id_unidad_medicion SEPARATOR ',') AS mediciones,
-    alc.cantidad,
-    um.nom_unidad AS unidad_medicion_alcance,   
     (SELECT e.nombre_etapa FROM etapa_proyecto ep
     INNER JOIN etapa e ON ep.id_etapa = e.id_etapa
     WHERE ep.id_proyecto = p.id_proyecto
@@ -70,49 +64,36 @@ router.get('/get', (req, res) => {
 
   GROUP BY p.id_proyecto;
  `;
-  /*`
-    SELECT 
-        p.*,
-        DATE_FORMAT(p.fecha_inicio, '%d-%m-%Y') AS fecha_inicio_convert,
-        DATE_FORMAT(p.fecha_fin, '%d-%m-%Y') AS fecha_fin_convert,
-        DATE_FORMAT(p.fecha_registro, '%d-%m-%Y') AS fecha_registro_convert,
-        t.nom_tipologia,
-        c.nom_categoria,
-        cu.nom_cuenca,
-        mu.id_municipio,
-        mu.nombre_municipio,
-        le.id_linea_estrategica,
-        la.id_linea_accion,
-        le.descripcion AS linea_estrategica,
-        la.descripcion AS linea_de_accion,
-        ae.descripcion AS accion_estrategica,
-        i.nombre_indicador,
-        GROUP_CONCAT(DISTINCT com.id SEPARATOR ', ') AS comunidades,
-        alc.cantidad,
-        um.nom_unidad AS unidad_medicion_alcance
-    FROM proyecto p
-    LEFT JOIN tipologia t ON p.id_tipologia = t.id_tipologia
-    LEFT JOIN categoria c ON p.id_categoria = c.id_categoria
-    LEFT JOIN cuenca cu ON p.id_cuenca = cu.id_cuenca
-    LEFT JOIN proyecto_ciudad_o_comunidad pc ON p.id_proyecto = pc.id_proyecto
-    LEFT JOIN ciudad_o_comunidad com ON pc.id_ciudad_comunidad = com.id
-    LEFT JOIN alcance alc ON p.id_proyecto = alc.id_proyecto
-    LEFT JOIN unidad_medicion um ON alc.id_unidad_medicion = um.id_unidad_medicion
-    LEFT JOIN accion_estrategica ae ON p.id_accion_estrategica = ae.id_accion_estrategica
-    LEFT JOIN linea_de_accion la ON ae.id_linea_accion = la.id_linea_accion
-    LEFT JOIN linea_estrategica le ON la.id_linea_estrategica = le.id_linea_estrategica
-    LEFT JOIN indicador i ON p.id_indicador = i.id_indicador
-    LEFT JOIN municipio mu ON com.id_municipio = mu.id_municipio
-    GROUP BY p.id_proyecto;
-`;
-*/
-
-  connection.query(sql, (err, result) => {
-    if (err) throw err;
-    res.json(result);
-  });
+      const result= await onlySelect(sql);
+      const sqlComunidades=`SELECT csm.id_ciudad_comunidad FROM proyecto_ciudad_o_comunidad as csm
+      where csm.id_proyecto = ?; `; 
+      const sqlAlcances=`SELECT alc.id_unidad_medicion,alc.cantidad,alc.mujeres,alc.hombres FROM alcance as alc
+      where alc.id_proyecto = ? order by alc.id_alcance asc;`; 
+      for(const proyect of result){
+        const resultComunidades = await selectParams(sqlComunidades,[proyect.id_proyecto]);
+        const resultAlcances = await selectParams(sqlAlcances,[proyect.id_proyecto]);
+        proyect.comunidades = resultComunidades.map(val=>val.id_ciudad_comunidad);
+        proyect.alcances = resultAlcances;
+      }
+      res.status(200).json(result)
 });
 
+const onlySelect = (query = "") => {
+  return new Promise((resolve, reject) => {
+    connection.query(query, (error, result) => {
+      if (error) return reject(error);
+      return resolve(result);
+    });
+  });
+};
+const selectParams = (query = "", params = []) => {
+  return new Promise((resolve, reject) => {
+    connection.query(query, params, (error, result) => {
+      if (error) return reject(error);
+      return resolve(result);
+    });
+  });
+};
 
 // Ruta para obtener un proyecto por su ID de usuario
 router.get('/buscar/:ci', (req, res) => {
@@ -215,9 +196,6 @@ router.post('/add', multer.single('documento'), (req, res) => {
       area: proyecto.area,
       coordenada_x: proyecto.coordenada_x,
       coordenada_y: proyecto.coordenada_y,
-      cantidad: proyecto.cantidad,
-      hombres: proyecto.hombres,
-      mujeres: proyecto.mujeres,
       id_categoria: proyecto.id_categoria,
       id_tipologia: proyecto.id_tipologia,
       id_indicador: proyecto.id_indicador,
@@ -226,7 +204,6 @@ router.post('/add', multer.single('documento'), (req, res) => {
       estado: proyecto.estado,
       documento: '',
       estado: 'true'
-
     }
   } else {
     console.log('Con archivo')
@@ -238,9 +215,6 @@ router.post('/add', multer.single('documento'), (req, res) => {
       area: proyecto.area,
       coordenada_x: proyecto.coordenada_x,
       coordenada_y: proyecto.coordenada_y,
-      cantidad: proyecto.cantidad,
-      hombres: proyecto.hombres,
-      mujeres: proyecto.mujeres,
       id_categoria: proyecto.id_categoria,
       id_tipologia: proyecto.id_tipologia,
       id_indicador: proyecto.id_indicador,
@@ -252,14 +226,6 @@ router.post('/add', multer.single('documento'), (req, res) => {
     }
   }
 
-  console.log(datos);
-  /*
-    console.log(datos);
-    console.log(ObjetId_ciudad_comunidad);
-    console.log(ObjetAlcance);
-  */
-
-
   connection.query('INSERT INTO proyecto  SET ?', [datos], (err, results) => {
     if (!err) {
       return res.status(200).json({ message: "Proyecto agregado con exito" });
@@ -270,20 +236,18 @@ router.post('/add', multer.single('documento'), (req, res) => {
   });
 
 
-  ObtenerIdUltimoRegistroProyecto(comunidad, alcance, proyecto.id_unidad_medicion, proyecto.cantidad);
-  //ObtenerIdUltimoRegistroProyecto(proyecto.alcance);
+  ObtenerIdUltimoRegistroProyecto(comunidad, alcance);
 });
 
-function ObtenerIdUltimoRegistroProyecto(comunidad, alcance, id_unidad_medicion, cantidad) {
-  let id_proyecto;
+function ObtenerIdUltimoRegistroProyecto(comunidad, alcance) {
+  
   connection.query('select id_proyecto from proyecto order by id_proyecto desc limit 1', (err, rows) => {
-    id_proyecto = rows[0].id_proyecto;
+    const id_proyecto = rows[0].id_proyecto;
 
     add_proyecto_comunidad(id_proyecto, comunidad); //para agregar a la tabla (proyecto_ciudad_o_comunidad)
-    add_alcance(id_proyecto, alcance, id_unidad_medicion, cantidad); //para agregar a la tabla (alcance) que es  la relacion de las tablas (Proyecto y unidad_medicion)
+    add_alcance(id_proyecto, alcance); //para agregar a la tabla (alcance) que es  la relacion de las tablas (Proyecto y unidad_medicion)
     //la variable (alcance) es un array de objetos en formato JSON que tiene los atributos (cantidad, unidad)
   });
-  return id_proyecto;
 }
 
 function add_proyecto_comunidad(id_proyecto, comunidad) {
@@ -300,23 +264,25 @@ function add_proyecto_comunidad(id_proyecto, comunidad) {
   });
 }
 
-function add_alcance(id_proyecto, ObjAlcance, id_unidad_medicion, cantidad) {
-  datos = {
-    cantidad: cantidad,
-    id_unidad_medicion: id_unidad_medicion,
-    id_proyecto: id_proyecto
-  }
-  //console.log(datos); 
-  connection.query('INSERT INTO alcance  set ?', [datos], (err, results) => {
-    // console.log('Agregado.!!!')
-  });
+function add_alcance(id_proyecto, ObjAlcance) {
+  // datos = {
+  //   cantidad: cantidad,
+  //   id_unidad_medicion: id_unidad_medicion,
+  //   id_proyecto: id_proyecto,
+  //   hombres:
+  // }
+  // //console.log(datos); 
+  // connection.query('INSERT INTO alcance  set ?', [datos], (err, results) => {
+  //   // console.log('Agregado.!!!')
+  // });
 
-  const query = "INSERT INTO alcance (cantidad, id_unidad_medicion,id_proyecto) VALUES (?, ?,?)";
+  const query = "INSERT INTO alcance (cantidad, id_unidad_medicion,id_proyecto,hombres,mujeres) VALUES (?,?,?,?,?)";
   ObjAlcance.forEach((alcance) => {
     //console.log('id_proyecto: ' + id_proyecto + '  id_ciudad_comunidad: ' + proyecto_comunidad.id);
-    connection.query(query, [alcance.cantidad, alcance.id_unidad_medicion, id_proyecto], (err, results) => {
+    connection.query(query, [alcance.cantidad, alcance.id_unidad_medicion, id_proyecto,alcance?.hombres || null,alcance?.mujeres || null], (err, results) => {
       if (!err) {
-        console.log('id proyecto: ' + id_proyecto + ' cantidad: ' + alcance.cantidad + ' id_unidad: ' + alcance.id_unidad_medicion);
+        // console.log('id proyecto: ' + id_proyecto + ' cantidad: ' + alcance.cantidad + ' id_unidad: ' + alcance.id_unidad_medicion);
+        console.log(results);
       } else {
         console.error('Error inserting Proyecto_ciudad_comunidad: ', err);
       }
@@ -326,7 +292,7 @@ function add_alcance(id_proyecto, ObjAlcance, id_unidad_medicion, cantidad) {
 
 
 // RUTA PARA ACTUALIZAR PROYECTO
-router.patch('/update', multer.single('documento'), (req, res) => {
+router.patch('/update', multer.single('documento'), async (req, res) => {
   const file = req.file;
   let proyecto = req.body;
   const alcance = JSON.parse(req.body.alcance);
@@ -342,9 +308,6 @@ router.patch('/update', multer.single('documento'), (req, res) => {
       area: proyecto.area,
       coordenada_x: proyecto.coordenada_x,
       coordenada_y: proyecto.coordenada_y,
-      cantidad: proyecto.cantidad,
-      hombres: proyecto.hombres,
-      mujeres: proyecto.mujeres,
       id_categoria: proyecto.id_categoria,
       id_tipologia: proyecto.id_tipologia,
       id_indicador: proyecto.id_indicador,
@@ -352,8 +315,6 @@ router.patch('/update', multer.single('documento'), (req, res) => {
       id_accion_estrategica: proyecto.id_accion_estrategica,
       estado: proyecto.estado,
       documento: proyecto.nombre_documento,
-      estado: 'true'
-
     }
   } else {
     console.log('Con archivo')
@@ -365,9 +326,6 @@ router.patch('/update', multer.single('documento'), (req, res) => {
       area: proyecto.area,
       coordenada_x: proyecto.coordenada_x,
       coordenada_y: proyecto.coordenada_y,
-      cantidad: proyecto.cantidad,
-      hombres: proyecto.hombres,
-      mujeres: proyecto.mujeres,
       id_categoria: proyecto.id_categoria,
       id_tipologia: proyecto.id_tipologia,
       id_indicador: proyecto.id_indicador,
@@ -375,25 +333,51 @@ router.patch('/update', multer.single('documento'), (req, res) => {
       id_accion_estrategica: proyecto.id_accion_estrategica,
       estado: proyecto.estado,
       documento: req.file.filename,
-      estado: 'true'
     }
   }
 
-  console.log(datos);
 
   connection.query('UPDATE proyecto  SET ? WHERE id_proyecto = ?', [datos, proyecto.id_proyecto], (err, results) => {
-    if (!err) {
-      return res.status(200).json({ message: "Proyecto actualizado con exito" });
-    }
-    else {
+    if (err) {
       return res.status(500).json(err);
     }
   });
 
-
+  if(alcance.length>0){
+    await updateAlcanceProyecto(alcance,proyecto.id_proyecto);
+  }
+  if(comunidad.length>0){
+    await updateComunidadProyecto(comunidad,proyecto.id_proyecto);
+    
+  }
+  res.status(200).json({message:'actualizado con exito'});
   //ObtenerIdUltimoRegistroProyecto(comunidad, alcance, proyecto.id_unidad_medicion, proyecto.cantidad);
 });
+const updateAlcanceProyecto= async (alcance=[],id_proyecto=0)=>{
+  const sqlDelete=`DELETE FROM alcance where id_proyecto = ?`;
+  const sqlInsert=`insert into alcance (cantidad,id_unidad_medicion,id_proyecto,hombres,mujeres) values(?,?,?,?,?);`;
+  try {
+    await selectParams(sqlDelete,[id_proyecto]);
+    for(const alc of alcance){
+      await selectParams(sqlInsert,[alc.cantidad,alc.id_unidad_medicion,id_proyecto,alc.hombres,alc.mujeres]);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+const updateComunidadProyecto = async (comunidad=[],id_proyecto =0)=>{
+  const sqlDelete=`DELETE FROM proyecto_ciudad_o_comunidad where id_proyecto = ?`;
+  const sqlInsert=`insert into proyecto_ciudad_o_comunidad (id_proyecto,id_ciudad_comunidad) values(?,?);`;
+  try {
+    await selectParams(sqlDelete,[id_proyecto]);
+    for(const csm of comunidad){
+      await selectParams(sqlInsert,[id_proyecto,csm]);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 
+}
 // RUTA PARA HABILITAR O DESHABILITAR PROYECTO
 router.patch('/updateStatus', (req, res) => {
   let proyecto = req.body;

@@ -2,9 +2,11 @@ const mysql = require('mysql');
 require('dotenv').config();
 
 var connection = mysql.createConnection({
+
     // port: 18005,
     // host: '181.188.156.195',
 
+    //SERVIDOR
     //  port: 18006,
     //  host: '181.188.156.195',
 
@@ -13,7 +15,8 @@ var connection = mysql.createConnection({
     password: 'c3oLwWprrgZlX1U7nkdv6ZIC',
     database: 'bdd_proyectos_v03',
 
-    // port: 3306,
+    // LOCAL HOST
+    // port: 3306, 
     // host:'localhost',
     // user: 'root',
     // password: '',

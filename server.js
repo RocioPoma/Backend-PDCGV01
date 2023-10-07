@@ -9,6 +9,7 @@ server.listen(80, () => {
   console.log("FUNCIONA")
 });
 
+//LOCAL HOST
 // server.listen(4000,()=>{
 //   console.log('FUNCIONA');
 // })

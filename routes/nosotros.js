@@ -15,7 +15,11 @@ router.get('/listar', (req, res) => {
     FROM nosotros d
    `;
     connection.query(sql, (err, result) => {
-      if (err) throw err;
+      if (err) {
+        console.log(err);
+        
+      res.status(500).json({message:'error al obtener nosotros'});
+      };
       res.json(result);
     });
   });

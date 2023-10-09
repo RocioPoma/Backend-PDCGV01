@@ -34,6 +34,7 @@ router.get("/getFinanciamiento/:id_etapa_proyecto", (req, res) => {
   const query = `SELECT FN.costo_inicial AS monto_inicial,FN.costo_final AS monto_final,FN.id_entidad_financiera FROM financiamiento AS FN WHERE FN.id_etapa_proyecto=?`;
   connection.query(query, [id_etapa_proyecto], (err, result) => {
     if (err) {
+      console.log(err);
       res.status(400).json({ msg: "error consulta", err });
     } else {
       res.json(result);

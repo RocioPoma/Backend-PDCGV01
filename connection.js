@@ -15,12 +15,14 @@ var connection = mysql.createConnection({
     password: 'c3oLwWprrgZlX1U7nkdv6ZIC',
     database: 'bdd_proyectos_v03',
 
+
     // LOCAL HOST
     // port: 3306, 
     // host:'localhost',
     // user: 'root',
     // password: '',
     // database: 'bdd_proyectos_v03'
+
 });
 
 connection.connect((err) => {

@@ -156,8 +156,8 @@ router.get("/tipologias", (req, res) => {
 router.get("/pdc_etapa/:fechaInicioAnalisis/:fechaFinAnalisis", (req, res) => {
   const fechaInicioAnalisis = req.params.fechaInicioAnalisis;
   const fechaFinAnalisis = req.params.fechaFinAnalisis;
-  console.log('Fecha inicio: ', fechaInicioAnalisis);
-  console.log('Fecha inicio: ', fechaFinAnalisis);
+  // console.log('Fecha inicio: ', fechaInicioAnalisis);
+  // console.log('Fecha inicio: ', fechaFinAnalisis);
 
   const query = `
   SELECT

@@ -89,7 +89,7 @@ router.get("/tipologias", (req, res) => {
   });
 });
 
-// REPORTE POR ETAPA DE CADA INDICADOR
+// REPORTE POR ETAPA DE CADA INDICADOR SIN FILTRAR
 // router.get("/pdc_etapa", (req, res) => {
 //   const fechaInicioAnalisis = req.query.fechaInicioAnalisis;
 //   const fechaFinAnalisis = req.query.fechaFinAnalisis;
@@ -152,12 +152,10 @@ router.get("/tipologias", (req, res) => {
 //   });
 // });
 
-// REPORTE POR ETAPA DE CADA INDICADOR
+// REPORTE POR ETAPA DE CADA INDICADOR - INCLUYE FILTRADO POR FECHA
 router.get("/pdc_etapa/:fechaInicioAnalisis/:fechaFinAnalisis", (req, res) => {
   const fechaInicioAnalisis = req.params.fechaInicioAnalisis;
   const fechaFinAnalisis = req.params.fechaFinAnalisis;
-  // console.log('Fecha inicio: ', fechaInicioAnalisis);
-  // console.log('Fecha inicio: ', fechaFinAnalisis);
 
   const query = `
   SELECT
@@ -246,7 +244,7 @@ ORDER BY
 //   });
 // });
 
-//REPORTES INVERSION POR LINEA ESTRATEGICA
+//REPORTES INVERSION POR LINEA ESTRATEGICA - INCLUYE FILTRADO POR FECHA
 router.get("/inversion_le/:fechaInicioAnalisis/:fechaFinAnalisis", (req, res) => {
   const fechaInicioAnalisis =  req.params.fechaInicioAnalisis;
   const fechaFinAnalisis = req.params.fechaFinAnalisis;
@@ -279,7 +277,7 @@ router.get("/inversion_le/:fechaInicioAnalisis/:fechaFinAnalisis", (req, res) =>
   });
 });
 
-//REPORTES INVERSION POR LINEA ESTRATEGICA DESAGREGADA POR MUNICIPIO
+//REPORTES INVERSION POR LINEA ESTRATEGICA DESAGREGADA POR MUNICIPIO SIN FILTRADO
 // router.get("/inversion_desagregada_le", (req, res) => {
 //   const query = `SELECT
 //   le.id_linea_estrategica,
@@ -323,7 +321,7 @@ router.get("/inversion_le/:fechaInicioAnalisis/:fechaFinAnalisis", (req, res) =>
 //   });
 // });
 
-//REPORTES INVERSION POR LINEA ESTRATEGICA DESAGREGADA POR MUNICIPIO
+//REPORTES INVERSION POR LINEA ESTRATEGICA DESAGREGADA POR MUNICIPIO - INCLUYE FILTRADO POR FECHA
 router.get("/inversion_desagregada_le/:fechaInicioAnalisis/:fechaFinAnalisis", (req, res) => {
   const fechaInicioAnalisis =  req.params.fechaInicioAnalisis;
   const fechaFinAnalisis = req.params.fechaFinAnalisis;

@@ -7,7 +7,10 @@ var auth = require('../services/authentication');
 router.get('/get', (req, res) => {
   const sql = 'SELECT * FROM categoria';
   connection.query(sql, (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      res.status(500).json({message:'error al obtener categorias'});
+    }
     res.json(result);
   });
 });
@@ -17,7 +20,10 @@ router.get('/buscar/:id', (req, res) => {
   const { id } = req.params;
   const sql = 'SELECT * FROM categoria WHERE id_categoria = ?';
   connection.query(sql, id, (err, result) => {
-    if (err) throw err;
+    if (err){
+      console.log(err); 
+      res.status(500).json({message:'error al obtener categorias por id'});
+    } 
     res.json(result[0]);
   });
 });
@@ -27,7 +33,10 @@ router.post('/create', (req, res) => {
   const { nom_categoria, desc_categoria, estado } = req.body;
   const sql = 'INSERT INTO categoria (nom_categoria, desc_categoria, estado) VALUES (?, ?, ?)';
   connection.query(sql, [nom_categoria, desc_categoria, estado], (err, result) => {
-    if (err) throw err;
+    if (err){
+      console.log(err);
+      res.status(500).json({message:'error al insertar una categorias'});
+    }
     res.status(201).json({ message: 'Categoría creada correctamente' });
   });
 });
@@ -37,7 +46,10 @@ router.patch('/update', (req, res) => {
   let categoria = req.body;
   var query = "UPDATE categoria SET nom_categoria = ?, desc_categoria = ? WHERE id_categoria = ?";
   connection.query(query, [categoria.nom_categoria, categoria.desc_categoria, categoria.id_categoria], (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      res.status(500).json({message:'error al actualizar categoria'});
+    }
     res.json({ message: 'Categoría actualizada correctamente' });
   });
 });
@@ -64,7 +76,10 @@ router.delete('/delete/:id', (req, res) => {
   const { id } = req.params;
   const sql = 'DELETE FROM categoria WHERE id_categoria = ?';
   connection.query(sql, id, (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      res.status(500).json({message:'error al borrar la categoria'});
+    }
     res.json({ message: 'Categoría eliminada correctamente' });
   });
 });

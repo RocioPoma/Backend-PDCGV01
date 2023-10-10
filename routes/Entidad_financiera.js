@@ -7,7 +7,10 @@ var auth = require('../services/authentication');
 router.get('/get', (req, res) => {
     const sql = 'SELECT * FROM entidad_financiera';
     connection.query(sql, (err, result) => {
-      if (err) throw err;
+      if (err){
+        console.log(err);
+      res.status(500).json({message:'error al obtener entidades financieras'});
+      }
       res.json(result);
     });
   });
@@ -16,7 +19,10 @@ router.get('/get', (req, res) => {
     const { id } = req.params;
     const sql = 'SELECT * FROM entidad_financiera WHERE id_entidad_financiera = ?';
     connection.query(sql, id, (err, result) => {
-      if (err) throw err;
+      if (err){
+        console.log(err);
+      res.status(500).json({message:'error al buscar entidad financiera por id'});
+      }
       res.json(result[0]);
     });
   });
@@ -25,7 +31,10 @@ router.get('/get', (req, res) => {
     const { nom_entidad_financiera, desc_entidad_financiera, estado } = req.body;
     const sql = 'INSERT INTO entidad_financiera (nom_entidad_financiera, desc_entidad_financiera, estado) VALUES (?, ?, ?)';
     connection.query(sql, [nom_entidad_financiera, desc_entidad_financiera, estado], (err, result) => {
-      if (err) throw err;
+      if (err) {
+        console.log(err);
+      res.status(500).json({message:'error al insertar nueva entidad financiera'});
+      }
       res.status(201).json({ message: 'Entidad financiera creada correctamente' });
     });
   });
@@ -34,7 +43,10 @@ router.get('/get', (req, res) => {
     const { nom_entidad_financiera, desc_entidad_financiera, estado,id_entidad_financiera } = req.body;
     const sql = 'UPDATE entidad_financiera SET nom_entidad_financiera = ?, desc_entidad_financiera = ?, estado = ? WHERE id_entidad_financiera = ?';
     connection.query(sql, [nom_entidad_financiera, desc_entidad_financiera, estado, id_entidad_financiera], (err, result) => {
-      if (err) throw err;
+      if (err) {
+        console.log(err);
+      res.status(500).json({message:'error al acutalizar entidad financiera'});
+      }
       res.json({ message: 'Entidad financiera actualizada correctamente' });
     });
   });
@@ -44,7 +56,10 @@ router.get('/get', (req, res) => {
     const { id } = req.params;
     const sql = 'DELETE FROM entidad_financiera WHERE id_entidad_financiera = ?';
     connection.query(sql, id, (err, result) => {
-      if (err) throw err;
+      if (err){
+        console.log(err);
+      res.status(500).json({message:'error al borrar entidad financiera por id'});
+      }
       res.json({ message: 'Entidad financiera eliminada correctamente' });
     });
   });
@@ -58,12 +73,13 @@ router.patch('/updateStatus',(req,res)=>{
   connection.query(query,[financiera.estado,financiera.id_entidad_financiera],(err,results)=>{
       if(!err){
           if(results.affectedRows == 0){
-              return res.status(404).json({message:"La entidad no existe"});
+              res.status(404).json({message:"La entidad no existe"});
           }
-          return res.status(200).json({message:"Actualización Estado de estado fue un éxito"});
+           res.status(200).json({message:"Actualización Estado de estado fue un éxito"});
       }
       else{
-          return res.status(500).json(err);
+          console.log(err);
+           res.status(500).json({message:'error al actualizar estado de entidad financiera por id'});
       }
   })
   });

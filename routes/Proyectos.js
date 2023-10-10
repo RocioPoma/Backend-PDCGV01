@@ -64,19 +64,25 @@ router.get('/get',async (req, res) => {
 
   GROUP BY p.id_proyecto;
  `;
-      const result= await onlySelect(sql);
-      const sqlComunidades=`SELECT csm.id_ciudad_comunidad FROM proyecto_ciudad_o_comunidad as csm
-      where csm.id_proyecto = ?; `; 
-      const sqlAlcances=`SELECT alc.id_unidad_medicion,alc.cantidad,alc.mujeres,alc.hombres FROM alcance as alc
-      where alc.id_proyecto = ? order by alc.id_alcance asc;`; 
-      for(const proyect of result){
-        const resultComunidades = await selectParams(sqlComunidades,[proyect.id_proyecto]);
-        const resultAlcances = await selectParams(sqlAlcances,[proyect.id_proyecto]);
-        proyect.comunidades = resultComunidades.map(val=>val.id_ciudad_comunidad);
-        proyect.alcances = resultAlcances;
+      try {
+        
+        const result= await onlySelect(sql);
+        const sqlComunidades=`SELECT csm.id_ciudad_comunidad FROM proyecto_ciudad_o_comunidad as csm
+        where csm.id_proyecto = ?; `; 
+        const sqlAlcances=`SELECT alc.id_unidad_medicion,alc.cantidad,alc.mujeres,alc.hombres FROM alcance as alc
+        where alc.id_proyecto = ? order by alc.id_alcance asc;`; 
+        for(const proyect of result){
+          const resultComunidades = await selectParams(sqlComunidades,[proyect.id_proyecto]);
+          const resultAlcances = await selectParams(sqlAlcances,[proyect.id_proyecto]);
+          proyect.comunidades = resultComunidades.map(val=>val.id_ciudad_comunidad);
+          proyect.alcances = resultAlcances;
+        }
+        res.status(200).json(result)
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({message:'error al obtener proyectos'})    
       }
-      res.status(200).json(result)
-});
+}); 
 
 const onlySelect = (query = "") => {
   return new Promise((resolve, reject) => {
@@ -151,7 +157,10 @@ WHERE u.ci = ?
 GROUP BY p.id_proyecto;
  `;
   connection.query(sql, ci, (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      res.status(500).json({message:'error al obtener proyecto por id'});
+    }
     res.json(result);
   });
 });
@@ -160,7 +169,10 @@ GROUP BY p.id_proyecto;
 router.get('/ultimoRegistro/', (req, res) => {
   const sql = 'select id_proyecto from proyecto order by id_proyecto desc limit 1 ';
   connection.query(sql, (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      res.status(500).json({message:'error al obtener ultimo registro de proyecto'});
+    }
     res.json(result);
   });
 });
@@ -171,12 +183,13 @@ router.post('/create', (req, res) => {
   const { nom_proyecto, fecha_inicio, fecha_fin, fecha_registro, area, coordenada_x, coordenada_y, cantidad, hombres, mujeres, id_categoria, id_tipologia, id_indicador, id_cuenca, id_accion_estrategica, estado } = req.body;
   const sql = 'INSERT INTO proyecto (nom_proyecto, fecha_inicio, fecha_fin, fecha_registro,area, coordenada_x, coordenada_y, cantidad,hombres,mujeres,id_categoria, id_tipologia, id_indicador, id_cuenca, id_accion_estrategica, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?)';
   connection.query(sql, [nom_proyecto, fecha_inicio, fecha_fin, fecha_registro, area, coordenada_x, coordenada_y, cantidad, hombres, mujeres, id_categoria, id_tipologia, id_indicador, id_cuenca, id_accion_estrategica, estado], (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      
+      res.status(500).json({message:'error al insertar proyecto'});
+    }
     res.status(201).json({ message: 'Proyecto creado correctamente' });
   });
-
-  //console.log(proyecto.id_ciudad_comunidad);
-  //llamarId(proyecto.id_ciudad_comunidad);
 
 });
 
@@ -206,7 +219,7 @@ router.post('/add', multer.single('documento'), (req, res) => {
       estado: 'true'
     }
   } else {
-    console.log('Con archivo')
+    console.log('Con a  rchivo')
     datos = {
       nom_proyecto: proyecto.nom_proyecto,
       fecha_inicio: proyecto.fecha_inicio,
@@ -265,24 +278,13 @@ function add_proyecto_comunidad(id_proyecto, comunidad) {
 }
 
 function add_alcance(id_proyecto, ObjAlcance) {
-  // datos = {
-  //   cantidad: cantidad,
-  //   id_unidad_medicion: id_unidad_medicion,
-  //   id_proyecto: id_proyecto,
-  //   hombres:
-  // }
-  // //console.log(datos); 
-  // connection.query('INSERT INTO alcance  set ?', [datos], (err, results) => {
-  //   // console.log('Agregado.!!!')
-  // });
+
 
   const query = "INSERT INTO alcance (cantidad, id_unidad_medicion,id_proyecto,hombres,mujeres) VALUES (?,?,?,?,?)";
   ObjAlcance.forEach((alcance) => {
-    //console.log('id_proyecto: ' + id_proyecto + '  id_ciudad_comunidad: ' + proyecto_comunidad.id);
     connection.query(query, [alcance.cantidad, alcance.id_unidad_medicion, id_proyecto,alcance?.hombres || null,alcance?.mujeres || null], (err, results) => {
       if (!err) {
-        // console.log('id proyecto: ' + id_proyecto + ' cantidad: ' + alcance.cantidad + ' id_unidad: ' + alcance.id_unidad_medicion);
-        console.log(results);
+         console.log(results);
       } else {
         console.error('Error inserting Proyecto_ciudad_comunidad: ', err);
       }
@@ -339,7 +341,8 @@ router.patch('/update', multer.single('documento'), async (req, res) => {
 
   connection.query('UPDATE proyecto  SET ? WHERE id_proyecto = ?', [datos, proyecto.id_proyecto], (err, results) => {
     if (err) {
-      return res.status(500).json(err);
+      console.log(err);
+      return res.status(500).json('error al actualizar proyecto');
     }
   });
 
@@ -402,7 +405,11 @@ router.delete('/delete/:id', (req, res) => {
   eliminarProyectoComunidad(req.params.id);
   const sql = 'DELETE FROM proyecto WHERE id_proyecto = ?';
   connection.query(sql, id, (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      
+      res.status(500).json({message:'error al borrar proyecto'});
+    }
     res.json({ message: 'Proyecto eliminado correctamente' });
   });
 });
@@ -442,6 +449,11 @@ router.delete('/dele/:id_proyecto', (req, res) => {
 function eliminarProyectoComunidad(id) {
   const sql = 'DELETE FROM proyecto_ciudad_o_comunidad WHERE id_proyecto = ?';
   connection.query(sql, id, (err, result) => {
+    if(err){
+      console.log(err);
+      
+      res.status(500).json({message:'error al borrar proyecto ciudad o cumunidad'});
+    }
     console.log(result);
   });
 }
@@ -452,7 +464,11 @@ function eliminarProyectoComunidad(id) {
 router.get('/get_tipologia', (req, res) => {
   const sql = 'SELECT * FROM tipologia';
   connection.query(sql, (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      
+      res.status(500).json({message:'error al obtener tipologias'});
+    };
     res.json(result);
   });
 });
@@ -487,42 +503,16 @@ router.get('/listarDoc/:id_proyecto', (req, res) => {
   WHERE p.id_proyecto = ?;
  `;
   connection.query(sql, id_proyecto, (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.log(err);
+      
+      res.status(500).json({message:'error al obtener documentos inner'});
+    };
     res.json(result);
   });
 });
 //---------------------------------------------------------------multer 2 
 
-//---------------------------------------------------------------multer 2 
-
-// Ruta para subir archivos y guardar información
-/* router.post('/addDocs', [multer.array('documentos')], (req, res) => {
-  const { id_proyecto, descripcion } = req.body; // Datos del proyecto
-  console.log('archivos,', files);
-  console.log(req.body);
-  // Los archivos se han subido exitosamente, puedes manejarlos aquí
-  console.log('Archivos subidos:', req.files);
-
-  // Inserta información de cada archivo en la base de datos
-  req.files.forEach((file) => {
-    const nombre_documento = file.originalname; // Nombre del archivo en el servidor
-
-    // Inserta los datos en la base de datos
-    const query = 'INSERT INTO documento (nombre_documento, comentario, id_proyecto) VALUES (?, ?, ?)';
-    const values = [nombre_documento, descripcion, id_proyecto];
-
-    connection.query(query, values, (err, results) => {
-      if (err) {
-        console.error('Error al insertar en la base de datos:', err);
-        res.status(500).json({ message: 'Error al guardar los datos en la base de datos' });
-      } else {
-        console.log('Datos insertados en la base de datos:', results);
-      }
-    });
-  });
-
-  res.status(200).json({ message: 'Archivos y datos guardados exitosamente' });
-}); */
 
 //----------------otraforma--------------------
 router.post('/upload', multer.array('files', 10), (req, res) => {
@@ -548,8 +538,8 @@ router.post('/upload', multer.array('files', 10), (req, res) => {
       ],
       (err, result) => {
         if (err) {
+          console.log(err);
           res.status(500).json({ msg: "erro al insertar documentos al proyecto" });
-          throw new Error(`error al isertar: ${err}`);
         }
       }
     ); 
@@ -574,7 +564,8 @@ router.delete('/delete2/:id', (req, res) => {
   connection.query(sql, [id], (err, result) => {
     if (err) {
       console.error('Error al eliminar el registro: ' + err.message);
-      return;
+      
+      return res.status(500).json({message:'error al obtener categorias por id'});
     }
     console.log('Registro eliminado con éxito');
   });

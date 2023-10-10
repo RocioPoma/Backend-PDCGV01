@@ -20,7 +20,10 @@ router.patch('/update', (req, res) => {
   let indicador = req.body;
   var query = "update indicador set nombre_indicador=?, desc_indicador=?, id_unidad_medicion=? WHERE id_indicador=?"
   connection.query(query, [indicador.nombre_indicador, indicador.desc_indicador, indicador.id_unidad_medicion, indicador.id_indicador], (error, results) => {
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+      res.status(500).json({message:'error al actualizar indicador'});
+    }
     res.json({ message: 'Indicador actualizado exitosamente' });
   });
 });

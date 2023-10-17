@@ -7,7 +7,7 @@ const server =http.createServer(app);
 
 server.listen(80, () => {
   console.log("FUNCIONA")
-});
+}) ;
 
 
 // LOCAL HOST

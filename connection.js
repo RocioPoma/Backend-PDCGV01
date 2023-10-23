@@ -7,8 +7,8 @@ var connection = mysql.createConnection({
     // host: '181.188.156.195',
 
     //  SERVIDOR
-    //  host: '181.188.156.195',
-    //  port: 18006,
+    // host: '181.188.156.195',
+    // port: 18006,
 
     host: 'cln5c4yri00q6pmcg18ba0o41',
     user: 'cln5c4yrh0cjzcgpm4icih9ri',

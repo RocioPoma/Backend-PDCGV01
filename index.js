@@ -35,9 +35,13 @@ app.use(cors({origen:"*"}));
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
 
+
 app.get("/api/test", (req, res) => {
   res.send("El Servidor Responde Bien");
 });
+// app.get("/", (req, res) => {
+//   res.send("El Servidor Responde Bien");
+// });
 
 app.use('/uploads',express.static(path.resolve('uploads')));
 //rutas componentes

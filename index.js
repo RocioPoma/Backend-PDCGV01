@@ -31,7 +31,7 @@ const nosotros_Route=require('./routes/nosotros');
 const app = express();
 
 //Middleware
-app.use(cors({origen:"*"}));
+app.use(cors({origin: '*'}));
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
 
